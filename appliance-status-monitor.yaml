@@ -36,17 +36,6 @@ blueprint:
     <strong>First setup?</strong> <i>[Follow the instructions](https://github.com/leofabri/hassio_appliance-status-monitor)</i>
   domain: automation
   input:
-    appliance_socket:
-      name: Appliance Smart Socket
-      description: >-
-        (*REQUIRED)
-
-
-        The socket that is used to control this appliance.
-      default: []
-      selector:
-        entity:
-          domain: switch
     appliance_power_sensor:
       name: Appliance Power Consumption
       description: >-
@@ -296,7 +285,6 @@ blueprint:
         action:
   source_url: https://github.com/leofabri/hassio_appliance-status-monitor/blob/main/appliance-status-monitor.yaml
 variables:
-  appliance_socket: !input "appliance_socket"
   appliance_suspended_sensor: !input "appliance_suspended_sensor"
   delayed_job_completion_duration: !input "delayed_job_completion_duration"
   delayed_job_completion_timer: !input "delayed_job_completion_timer"
@@ -304,9 +292,6 @@ trigger:
   - platform: state
     entity_id: !input "appliance_power_sensor"
     id: power_event
-  - platform: state
-    entity_id: !input "appliance_socket"
-    id: socket_state_change_event
 
   - platform: state
     entity_id: !input "appliance_state_machine"
@@ -400,8 +385,6 @@ action:
             state: "on"
           - condition: template
             value_template: "{% if appliance_suspended_sensor|length > 0 %}{{ states(appliance_suspended_sensor) | float <= 0.0 }}{% else %}true{% endif %}"
-          - condition: template
-            value_template: "{{ states(appliance_socket) == 'on' }}"
           - condition: numeric_state
             entity_id: !input "appliance_power_sensor"
             below: !input "appliance_finishing_power_threshold"
@@ -425,8 +408,6 @@ action:
             target:
               entity_id: !input "appliance_state_machine"
       - conditions:
-          - condition: template
-            value_template: "{{ states(appliance_socket) == 'off' }}"
           - condition: not
             conditions:
               - condition: template
@@ -479,8 +460,6 @@ action:
     default:
       - choose:
           - conditions:
-              - condition: template
-                value_template: "{{ states(appliance_socket) == 'on' }}"
               - condition: numeric_state
                 entity_id: !input "appliance_power_sensor"
                 above: !input "appliance_starting_power_threshold"
@@ -528,8 +507,6 @@ action:
               - condition: state
                 entity_id: !input "appliance_job_cycle"
                 state: "on"
-              - condition: template
-                value_template: "{{ states(appliance_socket) == 'on' }}"
               - condition: numeric_state
                 entity_id: !input "appliance_power_sensor"
                 below: !input "appliance_finishing_power_threshold"
