@@ -398,18 +398,6 @@ action:
             target:
               entity_id: !input "appliance_state_machine"
       - conditions:
-          - condition: not
-            conditions:
-              - condition: template
-                value_template: "{{ appliance_suspended_sensor|length > 0 }}"
-              - condition: and
-                conditions:
-                  - condition: template
-                    value_template: "{% if appliance_suspended_sensor|length > 0 %}{{ states(appliance_suspended_sensor) | float > 0.0 }}{% else %}false{% endif %}"
-                  - condition: state
-                    entity_id: !input "appliance_state_machine"
-                    state: detached_overload
-      - conditions:
           - condition: trigger
             id: paused_after_overload_event
         sequence:
