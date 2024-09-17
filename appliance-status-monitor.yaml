@@ -300,11 +300,6 @@ trigger:
     id: paused_after_overload_event
   - platform: state
     entity_id: !input "appliance_state_machine"
-    from: unplugged
-    to: paused
-    id: paused_after_unplugged_event
-  - platform: state
-    entity_id: !input "appliance_state_machine"
     from: detached_overload
     to: job_ongoing
     id: resuming_after_paused_overload_event
@@ -388,14 +383,9 @@ action:
           - condition: numeric_state
             entity_id: !input "appliance_power_sensor"
             below: !input "appliance_finishing_power_threshold"
-          - condition: or
-            conditions:
-              - condition: state
-                entity_id: !input "appliance_state_machine"
-                state: detached_overload
-              - condition: state
-                entity_id: !input "appliance_state_machine"
-                state: unplugged
+          - condition: state
+            entity_id: !input "appliance_state_machine"
+            state: detached_overload
           - condition: not
             conditions:
               - condition: state
@@ -419,26 +409,6 @@ action:
                   - condition: state
                     entity_id: !input "appliance_state_machine"
                     state: detached_overload
-        sequence:
-          - condition: not
-            conditions:
-              - condition: state
-                entity_id: !input "appliance_state_machine"
-                state: unplugged
-          - service: input_select.select_option
-            data:
-              option: unplugged
-            target:
-              entity_id: !input "appliance_state_machine"
-          - choose:
-              - conditions:
-                  - condition: template
-                    value_template: "{{ states(delayed_job_completion_timer) == 'active' }}"
-                sequence:
-                  - service: timer.cancel
-                    data: {}
-                    target:
-                      entity_id: !input "delayed_job_completion_timer"
       - conditions:
           - condition: trigger
             id: paused_after_overload_event
